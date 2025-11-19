@@ -9,14 +9,13 @@ typedef struct {
     float peso;
 } Animal;
 
-
 void limpaBuffer();
 int tamanho(FILE *arq);
 void cadastrar(FILE *arq);
 void consultar(FILE *arq);
-void listarTodos(FILE *arq);     
-void excluir(FILE *arq);         
-
+void listarTodos(FILE *arq);
+void excluir(FILE *arq);
+void relatorioTXT(FILE *arq);  
 
 int main() {
     FILE *arq;
@@ -41,6 +40,7 @@ int main() {
         printf("3 - Listar Todos\n");
         printf("4 - Excluir Registro\n");
         printf("5 - Mostrar quantidade\n");
+        printf("6 - Gerar relatório em TXT\n"); 
         printf("0 - Sair\n");
         printf("Escolha: ");
         scanf("%d", &opcao);
@@ -54,8 +54,12 @@ int main() {
             case 5:
                 printf("Total de registros: %d\n", tamanho(arq));
                 break;
-            case 0: printf("Encerrando...\n"); break;
-            default: printf("Opção inválida!\n");
+            case 6: relatorioTXT(arq); break;  
+            case 0:
+                printf("Encerrando...\n");
+                break;
+            default:
+                printf("Opção inválida!\n");
         }
 
     } while(opcao != 0);
@@ -64,19 +68,16 @@ int main() {
     return 0;
 }
 
-
 void limpaBuffer() {
     int c;
     while((c = getchar()) != '\n' && c != EOF) {}
 }
-
 
 int tamanho(FILE *arq) {
     fseek(arq, 0, SEEK_END);
     long bytes = ftell(arq);
     return bytes / sizeof(Animal);
 }
-
 
 void cadastrar(FILE *arq) {
     Animal a;
@@ -105,7 +106,6 @@ void cadastrar(FILE *arq) {
     printf("Animal cadastrado com sucesso!\n");
 }
 
-
 void consultar(FILE *arq) {
     int cod;
     Animal a;
@@ -130,7 +130,6 @@ void consultar(FILE *arq) {
     printf("Peso:   %.2f kg\n", a.peso);
 }
 
-
 void listarTodos(FILE *arq) {
     int total = tamanho(arq);
 
@@ -151,7 +150,6 @@ void listarTodos(FILE *arq) {
     }
 }
 
-
 void excluir(FILE *arq) {
     int cod;
     printf("\nInforme o código do registro a excluir: ");
@@ -170,17 +168,53 @@ void excluir(FILE *arq) {
     fseek(arq, 0, SEEK_SET);
     fread(vet, sizeof(Animal), total, arq);
 
-    
     for (int i = cod; i < total - 1; i++) {
         vet[i] = vet[i + 1];
     }
 
-
     freopen("banho_petshop.dat", "w+b", arq);
-
     fwrite(vet, sizeof(Animal), total - 1, arq);
 
     free(vet);
 
     printf("Registro excluído com sucesso!\n");
 }
+
+void relatorioTXT(FILE *arq) {
+    FILE *txt = fopen("relatorio.txt", "w");
+
+    if (txt == NULL) {
+        printf("Erro ao criar arquivo relatorio.txt!\n");
+        return;
+    }
+
+    int total = tamanho(arq);
+
+    if (total == 0) {
+        fprintf(txt, "Nenhum animal cadastrado.\n");
+        fclose(txt);
+        printf("Relatório criado (vazio).\n");
+        return;
+    }
+
+    Animal a;
+    fseek(arq, 0, SEEK_SET);
+
+    fprintf(txt, "======= RELATÓRIO DE ANIMAIS =======\n\n");
+
+    for (int i = 0; i < total; i++) {
+        fread(&a, sizeof(Animal), 1, arq);
+
+        fprintf(txt,
+            "Registro: %d\n"
+            "Animal: %s\n"
+            "Proprietário: %s\n"
+            "Idade: %d anos\n"
+            "Peso: %.2f kg\n"
+            "------------------------------------\n",
+            i, a.nomeAnimal, a.nomeDono, a.idade, a.peso
+        );
+    }
+
+    fclose(txt);
+    printf("\nRelatório gerado com sucesso em 'relatorio.txt'!\n");
