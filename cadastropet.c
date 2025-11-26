@@ -208,34 +208,3 @@ void gerarRelatorio(FILE *arq)
     fclose(rel);
     printf("Relatório gerado com sucesso em relatorio.txt!\n");
 }
-
-    int total = tamanho(arq);
-
-    if (total == 0) {
-        fprintf(txt, "Nenhum animal cadastrado.\n");
-        fclose(txt);
-        printf("Relatório criado (vazio).\n");
-        return;
-    }
-
-    Animal a;
-    fseek(arq, 0, SEEK_SET);
-
-    fprintf(txt, "======= RELATÓRIO DE ANIMAIS =======\n\n");
-
-    for (int i = 0; i < total; i++) {
-        fread(&a, sizeof(Animal), 1, arq);
-
-        fprintf(txt,
-            "Registro: %d\n"
-            "Animal: %s\n"
-            "Proprietário: %s\n"
-            "Idade: %d anos\n"
-            "Peso: %.2f kg\n"
-            "------------------------------------\n",
-            i, a.nomeAnimal, a.nomeDono, a.idade, a.peso
-        );
-    }
-
-    fclose(txt);
-    printf("\nRelatório gerado com sucesso em 'relatorio.txt'!\n");
